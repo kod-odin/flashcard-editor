@@ -523,7 +523,15 @@
     .data-table .row-actions button:hover {
       background: #c0392b;
     }
-    
+
+    .data-table .row-number {
+      width: 40px;
+      text-align: center;
+      color: #888;
+      font-size: 13px;
+      background: #f8f9fa;
+    }
+
     /* Print Styles */
     .print-section {
       background: white;
@@ -1562,7 +1570,7 @@
       emptyState.style.display = 'none';
       
       // Build header
-      let headerHtml = '<tr>';
+      let headerHtml = '<tr><th class="row-number">№</th>';
       columns.forEach((col, index) => {
         headerHtml += `
           <th>
@@ -1591,7 +1599,7 @@
       // Build body
       let bodyHtml = '';
       state.data.forEach((row, rowIndex) => {
-        bodyHtml += '<tr>';
+        bodyHtml += `<tr><td class="row-number">${rowIndex + 1}</td>`;
         columns.forEach(col => {
           const field = state.fields.find(f => f.name === col);
           const dir = field && field.textDirection === 'rtl' ? 'rtl' : 'ltr';
