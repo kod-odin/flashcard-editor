@@ -923,6 +923,10 @@
         <h3>📊 Данные для карточек</h3>
         <div class="table-actions">
           <button class="btn btn-primary" onclick="addRow()">+ Добавить строку</button>
+          <div class="setting-group">
+            <label>Размер шрифта:</label>
+            <input type="number" id="table-font-size" value="14" min="10" max="32" onchange="updateTableFontSize(this.value)"> px
+          </div>
           <div class="file-input-wrapper">
             <button class="btn btn-secondary">📁 Загрузить CSV/TSV</button>
             <input type="file" accept=".csv,.tsv,.txt" onchange="loadCSV(event)">
@@ -1057,7 +1061,8 @@
       selectedField: null,
       activeCard: 'front',
       nextFieldId: 1,
-      showPreview: true
+      showPreview: true,
+      tableFontSize: 14
     };
     
     // A4 dimensions in mm
@@ -1562,7 +1567,8 @@
           const field = state.fields.find(f => f.name === col);
           const dir = field && field.textDirection === 'rtl' ? 'rtl' : 'ltr';
           const align = field && field.textAlign ? field.textAlign : 'center';
-          bodyHtml += `<td><textarea dir="${dir}" style="text-align:${align}" oninput="updateCell(${rowIndex}, '${escapeHtml(col)}', this.value)">${escapeHtml(row[col] || '')}</textarea></td>`;
+          const fontSize = state.tableFontSize || 14;
+          bodyHtml += `<td><textarea dir="${dir}" style="text-align:${align};font-size:${fontSize}px" oninput="updateCell(${rowIndex}, '${escapeHtml(col)}', this.value)">${escapeHtml(row[col] || '')}</textarea></td>`;
         });
         bodyHtml += `<td class="row-actions"><button onclick="deleteRow(${rowIndex})" title="Удалить строку">×</button></td>`;
         bodyHtml += '</tr>';
@@ -1573,15 +1579,22 @@
     function moveColumn(index, direction) {
       const newIndex = index + direction;
       if (newIndex < 0 || newIndex >= state.fields.length) return;
-      
+
       // Swap fields
       const temp = state.fields[index];
       state.fields[index] = state.fields[newIndex];
       state.fields[newIndex] = temp;
-      
+
       updateTable();
     }
-    
+
+    function updateTableFontSize(size) {
+      state.tableFontSize = parseInt(size) || 14;
+      document.querySelectorAll('.data-table td textarea').forEach(textarea => {
+        textarea.style.fontSize = state.tableFontSize + 'px';
+      });
+    }
+
     function addRow() {
       if (state.fields.length === 0) {
         alert('Сначала добавьте поля на карточки!');
@@ -2030,9 +2043,10 @@
         backBgTransparent: state.backBgTransparent,
         fields: state.fields,
         data: state.data,
-        nextFieldId: state.nextFieldId
+        nextFieldId: state.nextFieldId,
+        tableFontSize: state.tableFontSize
       };
-      
+
       // Load existing settings from localStorage
       let savedSettings = JSON.parse(localStorage.getItem('flashcard-settings') || '[]');
       
@@ -2077,9 +2091,10 @@
         backBgTransparent: state.backBgTransparent,
         fields: state.fields,
         data: state.data,
-        nextFieldId: state.nextFieldId
+        nextFieldId: state.nextFieldId,
+        tableFontSize: state.tableFontSize
       };
-      
+
       const blob = new Blob([JSON.stringify(settings, null, 2)], { type: 'application/json' });
       const link = document.createElement('a');
       link.href = URL.createObjectURL(blob);
@@ -2193,7 +2208,8 @@
       state.fields = settings.fields || [];
       state.data = settings.data || [];
       state.nextFieldId = settings.nextFieldId || 1;
-      
+      state.tableFontSize = settings.tableFontSize || 14;
+
       // Update UI
       document.getElementById('card-width').value = state.cardWidth;
       document.getElementById('card-height').value = state.cardHeight;
@@ -2201,6 +2217,7 @@
       document.getElementById('front-bg-transparent').checked = state.frontBgTransparent;
       document.getElementById('back-bg-color').value = state.backBgColor;
       document.getElementById('back-bg-transparent').checked = state.backBgTransparent;
+      document.getElementById('table-font-size').value = state.tableFontSize;
       
       updateCardSizes();
       
