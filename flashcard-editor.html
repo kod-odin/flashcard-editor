@@ -1062,7 +1062,20 @@
       activeCard: 'front',
       nextFieldId: 1,
       showPreview: true,
-      tableFontSize: 14
+      tableFontSize: 14,
+      lastFieldSettings: {
+        fontFamily: 'Roboto',
+        fontSize: 16,
+        bold: false,
+        italic: false,
+        textAlign: 'center',
+        textDirection: 'ltr',
+        color: '#000000',
+        bgColor: '#ffffff',
+        bgTransparent: true,
+        width: 100,
+        height: 30
+      }
     };
     
     // A4 dimensions in mm
@@ -1156,23 +1169,24 @@
         return;
       }
       
+      const defaults = state.lastFieldSettings;
       const field = {
         id: fieldId,
         side: side,
         name: fieldName,
         x: 20,
         y: 20 + (state.fields.filter(f => f.side === side).length * 40),
-        width: 100,
-        height: 30,
-        fontFamily: 'Roboto',
-        fontSize: 16,
-        bold: false,
-        italic: false,
-        textAlign: 'center',
-        textDirection: 'ltr',
-        color: '#000000',
-        bgColor: '#ffffff',
-        bgTransparent: true
+        width: defaults.width,
+        height: defaults.height,
+        fontFamily: defaults.fontFamily,
+        fontSize: defaults.fontSize,
+        bold: defaults.bold,
+        italic: defaults.italic,
+        textAlign: defaults.textAlign,
+        textDirection: defaults.textDirection,
+        color: defaults.color,
+        bgColor: defaults.bgColor,
+        bgTransparent: defaults.bgTransparent
       };
       
       state.fields.push(field);
@@ -1307,58 +1321,70 @@
     
     function updateSelectedFieldStyle() {
       if (!state.selectedField) return;
-      
+
       const field = state.fields.find(f => f.id === state.selectedField);
       if (!field) return;
-      
+
       field.fontFamily = document.getElementById('font-family').value;
       field.fontSize = parseInt(document.getElementById('font-size').value) || 16;
       field.color = document.getElementById('text-color').value;
       field.bgColor = document.getElementById('field-bg-color').value;
       field.bgTransparent = document.getElementById('field-bg-transparent').checked;
-      
+
+      // Save as defaults for new fields
+      state.lastFieldSettings.fontFamily = field.fontFamily;
+      state.lastFieldSettings.fontSize = field.fontSize;
+      state.lastFieldSettings.color = field.color;
+      state.lastFieldSettings.bgColor = field.bgColor;
+      state.lastFieldSettings.bgTransparent = field.bgTransparent;
+
       const fieldEl = document.getElementById(state.selectedField);
       if (fieldEl) {
         updateFieldElement(fieldEl, field);
       }
-      
+
       updateA4Preview();
     }
     
     function updateSelectedFieldSize() {
       if (!state.selectedField) return;
-      
+
       const field = state.fields.find(f => f.id === state.selectedField);
       if (!field) return;
-      
+
       field.width = parseInt(document.getElementById('field-width').value) || 100;
       field.height = parseInt(document.getElementById('field-height').value) || 30;
-      
+
+      // Save as defaults for new fields
+      state.lastFieldSettings.width = field.width;
+      state.lastFieldSettings.height = field.height;
+
       const fieldEl = document.getElementById(state.selectedField);
       if (fieldEl) {
         updateFieldElement(fieldEl, field);
       }
-      
+
       updateA4Preview();
     }
-    
+
     function toggleBold() {
       if (!state.selectedField) return;
-      
+
       const field = state.fields.find(f => f.id === state.selectedField);
       if (!field) return;
-      
+
       field.bold = !field.bold;
+      state.lastFieldSettings.bold = field.bold;
       document.getElementById('btn-bold').classList.toggle('active', field.bold);
-      
+
       const fieldEl = document.getElementById(state.selectedField);
       if (fieldEl) {
         updateFieldElement(fieldEl, field);
       }
-      
+
       updateA4Preview();
     }
-    
+
     function toggleItalic() {
       if (!state.selectedField) return;
 
@@ -1366,6 +1392,7 @@
       if (!field) return;
 
       field.italic = !field.italic;
+      state.lastFieldSettings.italic = field.italic;
       document.getElementById('btn-italic').classList.toggle('active', field.italic);
 
       const fieldEl = document.getElementById(state.selectedField);
@@ -1383,6 +1410,7 @@
       if (!field) return;
 
       field.textAlign = align;
+      state.lastFieldSettings.textAlign = align;
       document.getElementById('btn-align-left').classList.toggle('active', align === 'left');
       document.getElementById('btn-align-center').classList.toggle('active', align === 'center');
       document.getElementById('btn-align-right').classList.toggle('active', align === 'right');
@@ -1403,6 +1431,7 @@
       if (!field) return;
 
       field.textDirection = dir;
+      state.lastFieldSettings.textDirection = dir;
       document.getElementById('btn-dir-ltr').classList.toggle('active', dir === 'ltr');
       document.getElementById('btn-dir-rtl').classList.toggle('active', dir === 'rtl');
 
@@ -2044,7 +2073,8 @@
         fields: state.fields,
         data: state.data,
         nextFieldId: state.nextFieldId,
-        tableFontSize: state.tableFontSize
+        tableFontSize: state.tableFontSize,
+        lastFieldSettings: state.lastFieldSettings
       };
 
       // Load existing settings from localStorage
@@ -2092,7 +2122,8 @@
         fields: state.fields,
         data: state.data,
         nextFieldId: state.nextFieldId,
-        tableFontSize: state.tableFontSize
+        tableFontSize: state.tableFontSize,
+        lastFieldSettings: state.lastFieldSettings
       };
 
       const blob = new Blob([JSON.stringify(settings, null, 2)], { type: 'application/json' });
@@ -2209,6 +2240,9 @@
       state.data = settings.data || [];
       state.nextFieldId = settings.nextFieldId || 1;
       state.tableFontSize = settings.tableFontSize || 14;
+      if (settings.lastFieldSettings) {
+        state.lastFieldSettings = settings.lastFieldSettings;
+      }
 
       // Update UI
       document.getElementById('card-width').value = state.cardWidth;
