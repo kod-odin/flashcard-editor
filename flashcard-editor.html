@@ -1,0 +1,2082 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Редактор флеш-карточек</title>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&family=Open+Sans:wght@400;700&family=Montserrat:wght@400;700&family=Lora:wght@400;700&family=PT+Sans:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    
+    body {
+      font-family: 'Roboto', sans-serif;
+      background: #f0f2f5;
+      padding: 20px;
+      color: #333;
+    }
+    
+    h1 {
+      text-align: center;
+      margin-bottom: 20px;
+      color: #2c3e50;
+    }
+    
+    .main-container {
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+    
+    /* Settings Panel */
+    .settings-panel {
+      background: white;
+      border-radius: 8px;
+      padding: 15px 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+      align-items: center;
+    }
+    
+    .setting-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .setting-group label {
+      font-size: 13px;
+      color: #666;
+    }
+    
+    .setting-group input[type="number"] {
+      width: 70px;
+      padding: 6px 8px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 13px;
+    }
+    
+    .setting-group input[type="color"] {
+      width: 36px;
+      height: 30px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      cursor: pointer;
+      padding: 2px;
+    }
+    
+    .checkbox-group {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    
+    .checkbox-group input[type="checkbox"] {
+      width: 16px;
+      height: 16px;
+      cursor: pointer;
+    }
+    
+    /* Toolbar */
+    .toolbar {
+      background: white;
+      border-radius: 8px;
+      padding: 10px 15px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+    }
+    
+    .toolbar-divider {
+      width: 1px;
+      height: 28px;
+      background: #ddd;
+      margin: 0 5px;
+    }
+    
+    .toolbar button {
+      width: 34px;
+      height: 34px;
+      border: 1px solid #ddd;
+      background: white;
+      border-radius: 4px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      transition: all 0.2s;
+    }
+    
+    .toolbar button:hover {
+      background: #e8f4fc;
+      border-color: #3498db;
+    }
+    
+    .toolbar button.active {
+      background: #3498db;
+      color: white;
+      border-color: #3498db;
+    }
+    
+    .toolbar select {
+      padding: 6px 10px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 13px;
+      cursor: pointer;
+    }
+    
+    .toolbar input[type="number"] {
+      width: 55px;
+      padding: 6px 8px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 13px;
+    }
+    
+    .toolbar input[type="color"] {
+      width: 34px;
+      height: 34px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      cursor: pointer;
+      padding: 2px;
+    }
+    
+    .toolbar-label {
+      font-size: 12px;
+      color: #666;
+      margin-right: 4px;
+    }
+    
+    .btn {
+      padding: 8px 16px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 500;
+      transition: all 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    
+    .btn-primary {
+      background: #3498db;
+      color: white;
+    }
+    
+    .btn-primary:hover {
+      background: #2980b9;
+    }
+    
+    .btn-success {
+      background: #27ae60;
+      color: white;
+    }
+    
+    .btn-success:hover {
+      background: #219a52;
+    }
+    
+    .btn-danger {
+      background: #e74c3c;
+      color: white;
+    }
+    
+    .btn-danger:hover {
+      background: #c0392b;
+    }
+    
+    .btn-secondary {
+      background: #95a5a6;
+      color: white;
+    }
+    
+    .btn-secondary:hover {
+      background: #7f8c8d;
+    }
+    
+    /* Cards Container */
+    .cards-section {
+      display: flex;
+      gap: 30px;
+      margin-bottom: 30px;
+      flex-wrap: wrap;
+    }
+    
+    .card-editor {
+      flex: 1;
+      min-width: 350px;
+    }
+    
+    .card-editor h3 {
+      margin-bottom: 10px;
+      color: #2c3e50;
+      font-size: 16px;
+    }
+    
+    .card-wrapper {
+      background: white;
+      border-radius: 8px;
+      padding: 15px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    
+    .card-canvas {
+      position: relative;
+      border: 2px dashed #bdc3c7;
+      border-radius: 4px;
+      overflow: hidden;
+      margin: 0 auto;
+    }
+    
+    .card-canvas.active {
+      border-color: #3498db;
+      border-style: solid;
+    }
+    
+    /* Draggable Fields */
+    .field-item {
+      position: absolute;
+      cursor: move;
+      user-select: none;
+      border: 1px dashed transparent;
+      padding: 5px 8px;
+      min-width: 50px;
+      min-height: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: border-color 0.2s;
+    }
+    
+    .field-item:hover {
+      border-color: #3498db;
+    }
+    
+    .field-item.selected {
+      border-color: #e74c3c;
+      border-style: solid;
+    }
+    
+    .field-item.dragging {
+      opacity: 0.7;
+      z-index: 100;
+    }
+    
+    .field-label {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    
+    /* Resize handles */
+    .resize-handle {
+      position: absolute;
+      width: 10px;
+      height: 10px;
+      background: #3498db;
+      border: 1px solid white;
+      border-radius: 2px;
+    }
+    
+    .resize-handle.se {
+      right: -5px;
+      bottom: -5px;
+      cursor: se-resize;
+    }
+    
+    .resize-handle.sw {
+      left: -5px;
+      bottom: -5px;
+      cursor: sw-resize;
+    }
+    
+    .resize-handle.ne {
+      right: -5px;
+      top: -5px;
+      cursor: ne-resize;
+    }
+    
+    .resize-handle.nw {
+      left: -5px;
+      top: -5px;
+      cursor: nw-resize;
+    }
+    
+    /* A4 Preview */
+    .preview-section {
+      background: white;
+      border-radius: 8px;
+      padding: 15px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      min-width: 280px;
+    }
+    
+    .preview-section h3 {
+      margin-bottom: 10px;
+      color: #2c3e50;
+      font-size: 16px;
+    }
+    
+    .a4-preview {
+      background: white;
+      border: 1px solid #ddd;
+      margin: 0 auto;
+      position: relative;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+    }
+    
+    .mini-card {
+      position: absolute;
+      border: 1px solid #95a5a6;
+      font-size: 4px;
+      overflow: hidden;
+    }
+    
+    .mini-field {
+      position: absolute;
+      font-size: 3px;
+      white-space: nowrap;
+      overflow: hidden;
+    }
+    
+    /* Data Table */
+    .table-section {
+      background: white;
+      border-radius: 8px;
+      padding: 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      margin-bottom: 20px;
+    }
+    
+    .table-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    
+    .table-header h3 {
+      color: #2c3e50;
+      font-size: 16px;
+    }
+    
+    .table-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    
+    .data-table-wrapper {
+      overflow-x: auto;
+    }
+    
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+    
+    .data-table th {
+      background: #f8f9fa;
+      padding: 10px 12px;
+      text-align: left;
+      border: 1px solid #ddd;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+    
+    .data-table th .column-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .data-table th .column-name {
+      flex: 1;
+    }
+    
+    .data-table th .column-actions {
+      display: flex;
+      gap: 4px;
+    }
+    
+    .data-table th .column-actions button {
+      width: 22px;
+      height: 22px;
+      border: none;
+      background: #e0e0e0;
+      border-radius: 3px;
+      cursor: pointer;
+      font-size: 11px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .data-table th .column-actions button:hover {
+      background: #3498db;
+      color: white;
+    }
+    
+    .data-table th .column-actions button:disabled {
+      opacity: 0.3;
+      cursor: not-allowed;
+    }
+    
+    .data-table td {
+      padding: 8px 10px;
+      border: 1px solid #ddd;
+    }
+    
+    .data-table td input {
+      width: 100%;
+      padding: 6px 8px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 13px;
+    }
+    
+    .data-table td input:focus {
+      outline: none;
+      border-color: #3498db;
+    }
+    
+    .data-table .row-actions {
+      width: 50px;
+      text-align: center;
+    }
+    
+    .data-table .row-actions button {
+      width: 26px;
+      height: 26px;
+      border: none;
+      background: #e74c3c;
+      color: white;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    
+    .data-table .row-actions button:hover {
+      background: #c0392b;
+    }
+    
+    /* Print Styles */
+    .print-section {
+      background: white;
+      border-radius: 8px;
+      padding: 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      text-align: center;
+    }
+    
+    .print-section h3 {
+      margin-bottom: 15px;
+      color: #2c3e50;
+    }
+    
+    .print-instructions {
+      font-size: 13px;
+      color: #666;
+      margin-bottom: 15px;
+      text-align: left;
+      padding: 15px;
+      background: #f8f9fa;
+      border-radius: 4px;
+    }
+    
+    .print-instructions ol {
+      margin-left: 20px;
+    }
+    
+    .print-instructions li {
+      margin-bottom: 8px;
+    }
+    
+    /* Hidden print area */
+    #print-area {
+      display: none;
+    }
+    
+    @media print {
+      body * {
+        visibility: hidden;
+      }
+      
+      #print-area, #print-area * {
+        visibility: visible;
+      }
+      
+      #print-area {
+        display: block;
+        position: absolute;
+        left: 0;
+        top: 0;
+      }
+      
+      .print-page {
+        width: 210mm;
+        height: 297mm;
+        page-break-after: always;
+        position: relative;
+        background: white !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+        color-adjust: exact !important;
+      }
+      
+      .print-card {
+        position: absolute;
+        overflow: hidden;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+        color-adjust: exact !important;
+      }
+      
+      .print-field {
+        position: absolute;
+        white-space: nowrap;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+        color-adjust: exact !important;
+      }
+    }
+    
+    /* Modal styles */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .modal-overlay.active {
+      display: flex;
+    }
+    
+    .modal {
+      background: white;
+      border-radius: 12px;
+      padding: 25px;
+      max-width: 500px;
+      width: 90%;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+    }
+    
+    .modal h3 {
+      margin-bottom: 20px;
+      color: #2c3e50;
+    }
+    
+    .modal-buttons {
+      display: flex;
+      gap: 10px;
+      margin-top: 20px;
+      justify-content: flex-end;
+    }
+    
+    .print-option {
+      padding: 15px;
+      border: 2px solid #ddd;
+      border-radius: 8px;
+      margin-bottom: 10px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    .print-option:hover {
+      border-color: #3498db;
+      background: #f8f9fa;
+    }
+    
+    .print-option.selected {
+      border-color: #3498db;
+      background: #e8f4fc;
+    }
+    
+    .print-option h4 {
+      margin: 0 0 5px 0;
+      color: #2c3e50;
+    }
+    
+    .print-option p {
+      margin: 0;
+      font-size: 13px;
+      color: #666;
+    }
+    
+    /* Settings list */
+    .settings-list {
+      max-height: 300px;
+      overflow-y: auto;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      margin-bottom: 15px;
+    }
+    
+    .settings-item {
+      padding: 12px 15px;
+      border-bottom: 1px solid #eee;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    
+    .settings-item:last-child {
+      border-bottom: none;
+    }
+    
+    .settings-item:hover {
+      background: #f8f9fa;
+    }
+    
+    .settings-item.selected {
+      background: #e8f4fc;
+    }
+    
+    .settings-item-info {
+      flex: 1;
+    }
+    
+    .settings-item-name {
+      font-weight: 600;
+      color: #2c3e50;
+    }
+    
+    .settings-item-date {
+      font-size: 12px;
+      color: #95a5a6;
+    }
+    
+    .settings-item-actions button {
+      width: 28px;
+      height: 28px;
+      border: none;
+      background: #e74c3c;
+      color: white;
+      border-radius: 4px;
+      cursor: pointer;
+      margin-left: 8px;
+    }
+    
+    .settings-item-actions button:hover {
+      background: #c0392b;
+    }
+    
+    .empty-settings {
+      padding: 30px;
+      text-align: center;
+      color: #95a5a6;
+    }
+    
+    /* File input styling */
+    .file-input-wrapper {
+      position: relative;
+      overflow: hidden;
+      display: inline-block;
+    }
+    
+    .file-input-wrapper input[type="file"] {
+      position: absolute;
+      left: 0;
+      top: 0;
+      opacity: 0;
+      cursor: pointer;
+      width: 100%;
+      height: 100%;
+    }
+    
+    /* Empty state */
+    .empty-state {
+      text-align: center;
+      padding: 40px;
+      color: #95a5a6;
+    }
+    
+    .empty-state p {
+      margin-bottom: 15px;
+    }
+  </style>
+</head>
+<body>
+  <div class="main-container">
+    <h1>🃏 Редактор флеш-карточек</h1>
+    
+    <!-- Card Size Settings -->
+    <div class="settings-panel">
+      <div class="setting-group">
+        <label>Ширина карточки:</label>
+        <input type="number" id="card-width" value="300" min="100" max="500"> px
+      </div>
+      <div class="setting-group">
+        <label>Высота карточки:</label>
+        <input type="number" id="card-height" value="200" min="80" max="400"> px
+      </div>
+      <div class="toolbar-divider"></div>
+      <div class="setting-group">
+        <label>Фон лицевой:</label>
+        <input type="color" id="front-bg-color" value="#ffffff">
+        <label class="checkbox-group">
+          <input type="checkbox" id="front-bg-transparent" checked>
+          Без заливки
+        </label>
+      </div>
+      <div class="setting-group">
+        <label>Фон обратной:</label>
+        <input type="color" id="back-bg-color" value="#ffffff">
+        <label class="checkbox-group">
+          <input type="checkbox" id="back-bg-transparent" checked>
+          Без заливки
+        </label>
+      </div>
+      <div class="toolbar-divider"></div>
+      <div class="checkbox-group">
+        <input type="checkbox" id="show-preview" checked>
+        <label for="show-preview">Показать превью A4</label>
+      </div>
+    </div>
+    
+    <!-- Toolbar -->
+    <div class="toolbar">
+      <button onclick="addField('front')" title="Добавить поле на лицевую сторону">
+        <span style="font-weight:bold">+F</span>
+      </button>
+      <button onclick="addField('back')" title="Добавить поле на обратную сторону">
+        <span style="font-weight:bold">+B</span>
+      </button>
+      <button onclick="deleteSelectedField()" title="Удалить выбранное поле" class="btn-icon-danger">
+        🗑️
+      </button>
+      
+      <div class="toolbar-divider"></div>
+      
+      <span class="toolbar-label">Шрифт:</span>
+      <select id="font-family" onchange="updateSelectedFieldStyle()">
+        <option value="Roboto">Roboto</option>
+        <option value="Open Sans">Open Sans</option>
+        <option value="Montserrat">Montserrat</option>
+        <option value="Lora">Lora</option>
+        <option value="PT Sans">PT Sans</option>
+        <option value="Arial">Arial</option>
+        <option value="Times New Roman">Times New Roman</option>
+        <option value="Georgia">Georgia</option>
+        <option value="Courier New">Courier New</option>
+      </select>
+      
+      <span class="toolbar-label">Размер:</span>
+      <input type="number" id="font-size" value="16" min="8" max="72" onchange="updateSelectedFieldStyle()">
+      
+      <button id="btn-bold" onclick="toggleBold()" title="Жирный">
+        <strong>B</strong>
+      </button>
+      
+      <button id="btn-italic" onclick="toggleItalic()" title="Курсив">
+        <em>I</em>
+      </button>
+      
+      <div class="toolbar-divider"></div>
+      
+      <span class="toolbar-label">Цвет текста:</span>
+      <input type="color" id="text-color" value="#000000" onchange="updateSelectedFieldStyle()">
+      
+      <span class="toolbar-label">Фон поля:</span>
+      <input type="color" id="field-bg-color" value="#ffffff" onchange="updateSelectedFieldStyle()">
+      <label class="checkbox-group">
+        <input type="checkbox" id="field-bg-transparent" checked onchange="updateSelectedFieldStyle()">
+        Без заливки
+      </label>
+      
+      <div class="toolbar-divider"></div>
+      
+      <span class="toolbar-label">Ширина поля:</span>
+      <input type="number" id="field-width" value="100" min="30" max="500" onchange="updateSelectedFieldSize()">
+      
+      <span class="toolbar-label">Высота:</span>
+      <input type="number" id="field-height" value="30" min="20" max="300" onchange="updateSelectedFieldSize()">
+    </div>
+    
+    <!-- Cards Editor and Preview -->
+    <div class="cards-section">
+      <div class="card-editor">
+        <h3>📄 Лицевая сторона</h3>
+        <div class="card-wrapper">
+          <div class="card-canvas" id="front-card" onclick="selectCard('front')"></div>
+        </div>
+      </div>
+      
+      <div class="card-editor">
+        <h3>📄 Обратная сторона</h3>
+        <div class="card-wrapper">
+          <div class="card-canvas" id="back-card" onclick="selectCard('back')"></div>
+        </div>
+      </div>
+      
+      <div class="preview-section" id="preview-section">
+        <h3>📋 Превью А4</h3>
+        <div class="a4-preview" id="a4-preview"></div>
+        <p style="font-size: 12px; color: #666; margin-top: 10px; text-align: center;">
+          Карточек на листе: <span id="cards-per-page">0</span>
+        </p>
+      </div>
+    </div>
+    
+    <!-- Data Table -->
+    <div class="table-section">
+      <div class="table-header">
+        <h3>📊 Данные для карточек</h3>
+        <div class="table-actions">
+          <button class="btn btn-primary" onclick="addRow()">+ Добавить строку</button>
+          <div class="file-input-wrapper">
+            <button class="btn btn-secondary">📁 Загрузить CSV/TSV</button>
+            <input type="file" accept=".csv,.tsv,.txt" onchange="loadCSV(event)">
+          </div>
+          <button class="btn btn-secondary" onclick="exportCSV()">💾 Экспорт CSV</button>
+          <button class="btn btn-danger" onclick="clearAllData()">🗑️ Очистить всё</button>
+        </div>
+      </div>
+      <div class="data-table-wrapper">
+        <table class="data-table" id="data-table">
+          <thead id="table-header"></thead>
+          <tbody id="table-body"></tbody>
+        </table>
+        <div class="empty-state" id="empty-state">
+          <p>Добавьте поля на карточки, чтобы создать колонки таблицы</p>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Print Section -->
+    <div class="print-section">
+      <h3>🖨️ Печать карточек</h3>
+      <div class="print-instructions">
+        <strong>Инструкция по печати:</strong>
+        <ol>
+          <li>Нажмите "Печатать карточки" и выберите режим печати</li>
+          <li><strong>Автоматическая двусторонняя:</strong> для принтеров с дуплексом — всё напечатается автоматически</li>
+          <li><strong>Ручная печать:</strong> сначала печатаете лицевые стороны, затем переворачиваете листы по короткой стороне и печатаете обратные</li>
+          <li>Разрежьте листы по линиям карточек</li>
+        </ol>
+        <p style="margin-top: 10px; padding: 10px; background: #d4edda; border-radius: 4px; color: #155724;">
+          <strong>✅ Выравнивание:</strong> Обратные стороны автоматически зеркально отражены относительно центра страницы для точного совпадения с лицевыми при перевороте листа.
+        </p>
+        <p style="margin-top: 10px; padding: 10px; background: #fff3cd; border-radius: 4px; color: #856404;">
+          <strong>⚠️ Важно:</strong> Чтобы цвета отображались при печати/PDF, включите в настройках печати опцию <strong>"Фоновая графика"</strong> (Background graphics) в разделе "Дополнительные настройки".
+        </p>
+      </div>
+      <button class="btn btn-success" onclick="openPrintModal()" style="margin-right: 10px;">
+        🖨️ Печатать карточки
+      </button>
+      <button class="btn btn-primary" onclick="openSaveModal()" style="margin-right: 10px;">
+        💾 Сохранить в браузер
+      </button>
+      <button class="btn btn-primary" onclick="exportSettingsFileDirect()" style="margin-right: 10px;">
+        📥 Сохранить в файл
+      </button>
+      <button class="btn btn-secondary" onclick="openLoadModal()">
+        📂 Загрузить шаблон
+      </button>
+    </div>
+  </div>
+  
+  <!-- Print Modal -->
+  <div class="modal-overlay" id="print-modal">
+    <div class="modal">
+      <h3>🖨️ Выберите режим печати</h3>
+      
+      <div class="print-option" onclick="selectPrintMode('duplex')" id="print-mode-duplex">
+        <h4>🔄 Автоматическая двусторонняя печать</h4>
+        <p>Для принтеров с поддержкой двусторонней печати. Лицевая и обратная стороны печатаются автоматически.</p>
+      </div>
+      
+      <div class="print-option" onclick="selectPrintMode('manual-front')" id="print-mode-manual-front">
+        <h4>📄 Ручная печать: только лицевые стороны</h4>
+        <p>Первый шаг ручной двусторонней печати. После печати переверните листы.</p>
+      </div>
+      
+      <div class="print-option" onclick="selectPrintMode('manual-back')" id="print-mode-manual-back">
+        <h4>📄 Ручная печать: только обратные стороны</h4>
+        <p>Второй шаг ручной печати. Обратные стороны зеркально отражены для совпадения.</p>
+      </div>
+      
+      <div class="modal-buttons">
+        <button class="btn btn-secondary" onclick="closePrintModal()">Отмена</button>
+        <button class="btn btn-success" onclick="executePrint()">Печатать</button>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Save Modal -->
+  <div class="modal-overlay" id="save-modal">
+    <div class="modal">
+      <h3>💾 Сохранить в браузер</h3>
+      <p style="margin-bottom: 15px; color: #666;">Шаблон будет сохранён в памяти браузера (localStorage). Введите название:</p>
+      <input type="text" id="save-name" placeholder="Название шаблона..." style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px;">
+      <div class="modal-buttons">
+        <button class="btn btn-secondary" onclick="closeSaveModal()">Отмена</button>
+        <button class="btn btn-primary" onclick="saveSettings()">Сохранить</button>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Load Modal -->
+  <div class="modal-overlay" id="load-modal">
+    <div class="modal">
+      <h3>📂 Загрузить шаблон</h3>
+      
+      <div class="settings-list" id="settings-list">
+        <div class="empty-settings">Нет сохранённых шаблонов</div>
+      </div>
+      
+      <div style="text-align: center; margin-bottom: 15px;">
+        <span style="color: #95a5a6;">— или —</span>
+      </div>
+      
+      <div class="file-input-wrapper" style="width: 100%;">
+        <button class="btn btn-secondary" style="width: 100%;">📁 Загрузить из файла (.json)</button>
+        <input type="file" accept=".json" onchange="importSettingsFile(event)">
+      </div>
+      
+      <div class="modal-buttons">
+        <button class="btn btn-secondary" onclick="closeLoadModal()">Отмена</button>
+        <button class="btn btn-primary" onclick="loadSelectedSettings()" id="load-btn" disabled>Загрузить</button>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Print Area (hidden) -->
+  <div id="print-area"></div>
+  
+  <script>
+    // Application State
+    let state = {
+      cardWidth: 300,
+      cardHeight: 200,
+      frontBgColor: '#ffffff',
+      frontBgTransparent: true,
+      backBgColor: '#ffffff',
+      backBgTransparent: true,
+      fields: [], // { id, side, name, x, y, width, height, fontFamily, fontSize, bold, italic, color, bgColor, bgTransparent }
+      data: [], // Array of row objects
+      selectedField: null,
+      activeCard: 'front',
+      nextFieldId: 1,
+      showPreview: true
+    };
+    
+    // A4 dimensions in mm
+    const A4_WIDTH_MM = 210;
+    const A4_HEIGHT_MM = 297;
+    const MM_TO_PX = 3.78; // approximate conversion
+    
+    // Preview scale
+    const PREVIEW_SCALE = 0.35;
+    
+    // Initialize
+    document.addEventListener('DOMContentLoaded', () => {
+      initEventListeners();
+      updateCardSizes();
+      updateA4Preview();
+    });
+    
+    function initEventListeners() {
+      document.getElementById('card-width').addEventListener('change', updateCardSizes);
+      document.getElementById('card-height').addEventListener('change', updateCardSizes);
+      document.getElementById('front-bg-color').addEventListener('change', updateCardBackground);
+      document.getElementById('front-bg-transparent').addEventListener('change', updateCardBackground);
+      document.getElementById('back-bg-color').addEventListener('change', updateCardBackground);
+      document.getElementById('back-bg-transparent').addEventListener('change', updateCardBackground);
+      document.getElementById('show-preview').addEventListener('change', togglePreview);
+      
+      document.addEventListener('click', (e) => {
+        if (!e.target.closest('.field-item') && !e.target.closest('.toolbar') && !e.target.closest('.card-canvas')) {
+          deselectField();
+        }
+      });
+      
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Delete' && state.selectedField) {
+          deleteSelectedField();
+        }
+      });
+    }
+    
+    function updateCardSizes() {
+      state.cardWidth = parseInt(document.getElementById('card-width').value) || 300;
+      state.cardHeight = parseInt(document.getElementById('card-height').value) || 200;
+      
+      const frontCard = document.getElementById('front-card');
+      const backCard = document.getElementById('back-card');
+      
+      frontCard.style.width = state.cardWidth + 'px';
+      frontCard.style.height = state.cardHeight + 'px';
+      backCard.style.width = state.cardWidth + 'px';
+      backCard.style.height = state.cardHeight + 'px';
+      
+      updateCardBackground();
+      updateA4Preview();
+    }
+    
+    function updateCardBackground() {
+      state.frontBgColor = document.getElementById('front-bg-color').value;
+      state.frontBgTransparent = document.getElementById('front-bg-transparent').checked;
+      state.backBgColor = document.getElementById('back-bg-color').value;
+      state.backBgTransparent = document.getElementById('back-bg-transparent').checked;
+      
+      const frontCard = document.getElementById('front-card');
+      const backCard = document.getElementById('back-card');
+      
+      frontCard.style.backgroundColor = state.frontBgTransparent ? '#f9f9f9' : state.frontBgColor;
+      backCard.style.backgroundColor = state.backBgTransparent ? '#f9f9f9' : state.backBgColor;
+      
+      updateA4Preview();
+    }
+    
+    function togglePreview() {
+      state.showPreview = document.getElementById('show-preview').checked;
+      document.getElementById('preview-section').style.display = state.showPreview ? 'block' : 'none';
+    }
+    
+    function selectCard(side) {
+      state.activeCard = side;
+      document.getElementById('front-card').classList.toggle('active', side === 'front');
+      document.getElementById('back-card').classList.toggle('active', side === 'back');
+    }
+    
+    function addField(side) {
+      const fieldId = 'field_' + state.nextFieldId++;
+      const fieldName = prompt('Введите название поля (например: слово, перевод, транскрипция):', 'Поле ' + state.fields.length);
+      
+      if (!fieldName) return;
+      
+      // Check for duplicate name
+      if (state.fields.some(f => f.name === fieldName)) {
+        alert('Поле с таким именем уже существует!');
+        return;
+      }
+      
+      const field = {
+        id: fieldId,
+        side: side,
+        name: fieldName,
+        x: 20,
+        y: 20 + (state.fields.filter(f => f.side === side).length * 40),
+        width: 100,
+        height: 30,
+        fontFamily: 'Roboto',
+        fontSize: 16,
+        bold: false,
+        italic: false,
+        color: '#000000',
+        bgColor: '#ffffff',
+        bgTransparent: true
+      };
+      
+      state.fields.push(field);
+      renderField(field);
+      updateTable();
+      updateA4Preview();
+      
+      // Select the new field
+      selectField(fieldId);
+    }
+    
+    function renderField(field) {
+      const card = document.getElementById(field.side + '-card');
+      
+      const fieldEl = document.createElement('div');
+      fieldEl.className = 'field-item';
+      fieldEl.id = field.id;
+      fieldEl.dataset.fieldId = field.id;
+      
+      updateFieldElement(fieldEl, field);
+      
+      // Create label
+      const label = document.createElement('span');
+      label.className = 'field-label';
+      label.textContent = '{' + field.name + '}';
+      fieldEl.appendChild(label);
+      
+      // Create resize handles
+      ['se', 'sw', 'ne', 'nw'].forEach(dir => {
+        const handle = document.createElement('div');
+        handle.className = 'resize-handle ' + dir;
+        handle.style.display = 'none';
+        handle.dataset.direction = dir;
+        fieldEl.appendChild(handle);
+      });
+      
+      // Event listeners
+      fieldEl.addEventListener('mousedown', (e) => {
+        if (e.target.classList.contains('resize-handle')) {
+          startResize(e, field.id);
+        } else {
+          startDrag(e, field.id);
+        }
+        e.stopPropagation();
+      });
+      
+      fieldEl.addEventListener('click', (e) => {
+        selectField(field.id);
+        e.stopPropagation();
+      });
+      
+      card.appendChild(fieldEl);
+    }
+    
+    function updateFieldElement(el, field) {
+      el.style.left = field.x + 'px';
+      el.style.top = field.y + 'px';
+      el.style.width = field.width + 'px';
+      el.style.height = field.height + 'px';
+      el.style.fontFamily = field.fontFamily;
+      el.style.fontSize = field.fontSize + 'px';
+      el.style.fontWeight = field.bold ? 'bold' : 'normal';
+      el.style.fontStyle = field.italic ? 'italic' : 'normal';
+      el.style.color = field.color;
+      el.style.backgroundColor = field.bgTransparent ? 'transparent' : field.bgColor;
+    }
+    
+    function selectField(fieldId) {
+      deselectField();
+      
+      state.selectedField = fieldId;
+      const fieldEl = document.getElementById(fieldId);
+      if (fieldEl) {
+        fieldEl.classList.add('selected');
+        fieldEl.querySelectorAll('.resize-handle').forEach(h => h.style.display = 'block');
+        
+        // Update toolbar with field properties
+        const field = state.fields.find(f => f.id === fieldId);
+        if (field) {
+          document.getElementById('font-family').value = field.fontFamily;
+          document.getElementById('font-size').value = field.fontSize;
+          document.getElementById('text-color').value = field.color;
+          document.getElementById('field-bg-color').value = field.bgColor;
+          document.getElementById('field-bg-transparent').checked = field.bgTransparent;
+          document.getElementById('field-width').value = field.width;
+          document.getElementById('field-height').value = field.height;
+          document.getElementById('btn-bold').classList.toggle('active', field.bold);
+          document.getElementById('btn-italic').classList.toggle('active', field.italic);
+          
+          selectCard(field.side);
+        }
+      }
+    }
+    
+    function deselectField() {
+      if (state.selectedField) {
+        const fieldEl = document.getElementById(state.selectedField);
+        if (fieldEl) {
+          fieldEl.classList.remove('selected');
+          fieldEl.querySelectorAll('.resize-handle').forEach(h => h.style.display = 'none');
+        }
+        state.selectedField = null;
+      }
+    }
+    
+    function deleteSelectedField() {
+      if (!state.selectedField) return;
+      
+      const fieldIndex = state.fields.findIndex(f => f.id === state.selectedField);
+      if (fieldIndex === -1) return;
+      
+      const fieldEl = document.getElementById(state.selectedField);
+      if (fieldEl) {
+        fieldEl.remove();
+      }
+      
+      state.fields.splice(fieldIndex, 1);
+      state.selectedField = null;
+      
+      updateTable();
+      updateA4Preview();
+    }
+    
+    function updateSelectedFieldStyle() {
+      if (!state.selectedField) return;
+      
+      const field = state.fields.find(f => f.id === state.selectedField);
+      if (!field) return;
+      
+      field.fontFamily = document.getElementById('font-family').value;
+      field.fontSize = parseInt(document.getElementById('font-size').value) || 16;
+      field.color = document.getElementById('text-color').value;
+      field.bgColor = document.getElementById('field-bg-color').value;
+      field.bgTransparent = document.getElementById('field-bg-transparent').checked;
+      
+      const fieldEl = document.getElementById(state.selectedField);
+      if (fieldEl) {
+        updateFieldElement(fieldEl, field);
+      }
+      
+      updateA4Preview();
+    }
+    
+    function updateSelectedFieldSize() {
+      if (!state.selectedField) return;
+      
+      const field = state.fields.find(f => f.id === state.selectedField);
+      if (!field) return;
+      
+      field.width = parseInt(document.getElementById('field-width').value) || 100;
+      field.height = parseInt(document.getElementById('field-height').value) || 30;
+      
+      const fieldEl = document.getElementById(state.selectedField);
+      if (fieldEl) {
+        updateFieldElement(fieldEl, field);
+      }
+      
+      updateA4Preview();
+    }
+    
+    function toggleBold() {
+      if (!state.selectedField) return;
+      
+      const field = state.fields.find(f => f.id === state.selectedField);
+      if (!field) return;
+      
+      field.bold = !field.bold;
+      document.getElementById('btn-bold').classList.toggle('active', field.bold);
+      
+      const fieldEl = document.getElementById(state.selectedField);
+      if (fieldEl) {
+        updateFieldElement(fieldEl, field);
+      }
+      
+      updateA4Preview();
+    }
+    
+    function toggleItalic() {
+      if (!state.selectedField) return;
+      
+      const field = state.fields.find(f => f.id === state.selectedField);
+      if (!field) return;
+      
+      field.italic = !field.italic;
+      document.getElementById('btn-italic').classList.toggle('active', field.italic);
+      
+      const fieldEl = document.getElementById(state.selectedField);
+      if (fieldEl) {
+        updateFieldElement(fieldEl, field);
+      }
+      
+      updateA4Preview();
+    }
+    
+    // Drag functionality
+    let dragState = null;
+    
+    function startDrag(e, fieldId) {
+      const field = state.fields.find(f => f.id === fieldId);
+      if (!field) return;
+      
+      const fieldEl = document.getElementById(fieldId);
+      fieldEl.classList.add('dragging');
+      
+      dragState = {
+        fieldId: fieldId,
+        startX: e.clientX,
+        startY: e.clientY,
+        origX: field.x,
+        origY: field.y,
+        type: 'drag'
+      };
+      
+      document.addEventListener('mousemove', onDrag);
+      document.addEventListener('mouseup', endDrag);
+      selectField(fieldId);
+    }
+    
+    function onDrag(e) {
+      if (!dragState) return;
+      
+      const field = state.fields.find(f => f.id === dragState.fieldId);
+      if (!field) return;
+      
+      const dx = e.clientX - dragState.startX;
+      const dy = e.clientY - dragState.startY;
+      
+      if (dragState.type === 'drag') {
+        field.x = Math.max(0, Math.min(state.cardWidth - field.width, dragState.origX + dx));
+        field.y = Math.max(0, Math.min(state.cardHeight - field.height, dragState.origY + dy));
+      } else if (dragState.type === 'resize') {
+        const dir = dragState.direction;
+        
+        if (dir.includes('e')) {
+          field.width = Math.max(30, dragState.origWidth + dx);
+        }
+        if (dir.includes('w')) {
+          const newWidth = Math.max(30, dragState.origWidth - dx);
+          field.x = dragState.origX + (dragState.origWidth - newWidth);
+          field.width = newWidth;
+        }
+        if (dir.includes('s')) {
+          field.height = Math.max(20, dragState.origHeight + dy);
+        }
+        if (dir.includes('n')) {
+          const newHeight = Math.max(20, dragState.origHeight - dy);
+          field.y = dragState.origY + (dragState.origHeight - newHeight);
+          field.height = newHeight;
+        }
+        
+        document.getElementById('field-width').value = field.width;
+        document.getElementById('field-height').value = field.height;
+      }
+      
+      const fieldEl = document.getElementById(dragState.fieldId);
+      updateFieldElement(fieldEl, field);
+    }
+    
+    function endDrag() {
+      if (dragState) {
+        const fieldEl = document.getElementById(dragState.fieldId);
+        if (fieldEl) {
+          fieldEl.classList.remove('dragging');
+        }
+        dragState = null;
+      }
+      
+      document.removeEventListener('mousemove', onDrag);
+      document.removeEventListener('mouseup', endDrag);
+      
+      updateA4Preview();
+    }
+    
+    function startResize(e, fieldId) {
+      const field = state.fields.find(f => f.id === fieldId);
+      if (!field) return;
+      
+      dragState = {
+        fieldId: fieldId,
+        startX: e.clientX,
+        startY: e.clientY,
+        origX: field.x,
+        origY: field.y,
+        origWidth: field.width,
+        origHeight: field.height,
+        direction: e.target.dataset.direction,
+        type: 'resize'
+      };
+      
+      document.addEventListener('mousemove', onDrag);
+      document.addEventListener('mouseup', endDrag);
+    }
+    
+    // Table Management
+    function updateTable() {
+      const headerRow = document.getElementById('table-header');
+      const tbody = document.getElementById('table-body');
+      const emptyState = document.getElementById('empty-state');
+      
+      // Get all unique field names (columns) in order
+      const columns = state.fields.map(f => f.name);
+      
+      if (columns.length === 0) {
+        headerRow.innerHTML = '';
+        tbody.innerHTML = '';
+        emptyState.style.display = 'block';
+        return;
+      }
+      
+      emptyState.style.display = 'none';
+      
+      // Build header
+      let headerHtml = '<tr>';
+      columns.forEach((col, index) => {
+        headerHtml += `
+          <th>
+            <div class="column-header">
+              <span class="column-name">${escapeHtml(col)}</span>
+              <div class="column-actions">
+                <button onclick="moveColumn(${index}, -1)" ${index === 0 ? 'disabled' : ''} title="Влево">◀</button>
+                <button onclick="moveColumn(${index}, 1)" ${index === columns.length - 1 ? 'disabled' : ''} title="Вправо">▶</button>
+              </div>
+            </div>
+          </th>
+        `;
+      });
+      headerHtml += '<th class="row-actions">⚙️</th></tr>';
+      headerRow.innerHTML = headerHtml;
+      
+      // Ensure data rows have all columns
+      state.data.forEach(row => {
+        columns.forEach(col => {
+          if (!(col in row)) {
+            row[col] = '';
+          }
+        });
+      });
+      
+      // Build body
+      let bodyHtml = '';
+      state.data.forEach((row, rowIndex) => {
+        bodyHtml += '<tr>';
+        columns.forEach(col => {
+          bodyHtml += `<td><input type="text" value="${escapeHtml(row[col] || '')}" onchange="updateCell(${rowIndex}, '${escapeHtml(col)}', this.value)"></td>`;
+        });
+        bodyHtml += `<td class="row-actions"><button onclick="deleteRow(${rowIndex})" title="Удалить строку">×</button></td>`;
+        bodyHtml += '</tr>';
+      });
+      tbody.innerHTML = bodyHtml;
+    }
+    
+    function moveColumn(index, direction) {
+      const newIndex = index + direction;
+      if (newIndex < 0 || newIndex >= state.fields.length) return;
+      
+      // Swap fields
+      const temp = state.fields[index];
+      state.fields[index] = state.fields[newIndex];
+      state.fields[newIndex] = temp;
+      
+      updateTable();
+    }
+    
+    function addRow() {
+      if (state.fields.length === 0) {
+        alert('Сначала добавьте поля на карточки!');
+        return;
+      }
+      
+      const newRow = {};
+      state.fields.forEach(f => {
+        newRow[f.name] = '';
+      });
+      state.data.push(newRow);
+      updateTable();
+    }
+    
+    function deleteRow(index) {
+      state.data.splice(index, 1);
+      updateTable();
+    }
+    
+    function updateCell(rowIndex, columnName, value) {
+      if (state.data[rowIndex]) {
+        state.data[rowIndex][columnName] = value;
+      }
+    }
+    
+    function clearAllData() {
+      if (confirm('Вы уверены, что хотите удалить все данные?')) {
+        state.data = [];
+        updateTable();
+      }
+    }
+    
+    function loadCSV(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const text = e.target.result;
+        const delimiter = file.name.endsWith('.tsv') ? '\t' : (text.includes('\t') ? '\t' : ',');
+        const lines = text.split('\n').filter(line => line.trim());
+        
+        if (lines.length === 0) return;
+        
+        // Parse header
+        const headers = parseCSVLine(lines[0], delimiter);
+        
+        // Create fields if they don't exist
+        headers.forEach((header, index) => {
+          const trimmedHeader = header.trim();
+          if (trimmedHeader && !state.fields.some(f => f.name === trimmedHeader)) {
+            const side = index % 2 === 0 ? 'front' : 'back';
+            const field = {
+              id: 'field_' + state.nextFieldId++,
+              side: side,
+              name: trimmedHeader,
+              x: 20,
+              y: 20 + (state.fields.filter(f => f.side === side).length * 40),
+              width: 120,
+              height: 30,
+              fontFamily: 'Roboto',
+              fontSize: 16,
+              bold: false,
+              italic: false,
+              color: '#000000',
+              bgColor: '#ffffff',
+              bgTransparent: true
+            };
+            state.fields.push(field);
+            renderField(field);
+          }
+        });
+        
+        // Parse data rows
+        for (let i = 1; i < lines.length; i++) {
+          const values = parseCSVLine(lines[i], delimiter);
+          const row = {};
+          headers.forEach((header, index) => {
+            const trimmedHeader = header.trim();
+            row[trimmedHeader] = (values[index] || '').trim();
+          });
+          state.data.push(row);
+        }
+        
+        updateTable();
+        updateA4Preview();
+      };
+      reader.readAsText(file);
+      event.target.value = '';
+    }
+    
+    function parseCSVLine(line, delimiter) {
+      const result = [];
+      let current = '';
+      let inQuotes = false;
+      
+      for (let i = 0; i < line.length; i++) {
+        const char = line[i];
+        
+        if (char === '"') {
+          if (inQuotes && line[i + 1] === '"') {
+            current += '"';
+            i++;
+          } else {
+            inQuotes = !inQuotes;
+          }
+        } else if (char === delimiter && !inQuotes) {
+          result.push(current);
+          current = '';
+        } else {
+          current += char;
+        }
+      }
+      result.push(current);
+      
+      return result;
+    }
+    
+    function exportCSV() {
+      if (state.fields.length === 0 || state.data.length === 0) {
+        alert('Нет данных для экспорта!');
+        return;
+      }
+      
+      const columns = state.fields.map(f => f.name);
+      let csv = columns.join(',') + '\n';
+      
+      state.data.forEach(row => {
+        const values = columns.map(col => {
+          const val = row[col] || '';
+          if (val.includes(',') || val.includes('"') || val.includes('\n')) {
+            return '"' + val.replace(/"/g, '""') + '"';
+          }
+          return val;
+        });
+        csv += values.join(',') + '\n';
+      });
+      
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = 'flashcards.csv';
+      link.click();
+    }
+    
+    // A4 Preview
+    function updateA4Preview() {
+      if (!state.showPreview) return;
+      
+      const preview = document.getElementById('a4-preview');
+      const previewWidth = A4_WIDTH_MM * PREVIEW_SCALE * MM_TO_PX;
+      const previewHeight = A4_HEIGHT_MM * PREVIEW_SCALE * MM_TO_PX;
+      
+      preview.style.width = previewWidth + 'px';
+      preview.style.height = previewHeight + 'px';
+      
+      // Calculate how many cards fit
+      const cardWidthMM = state.cardWidth / MM_TO_PX;
+      const cardHeightMM = state.cardHeight / MM_TO_PX;
+      
+      const marginMM = 10;
+      const gapMM = 5;
+      
+      const usableWidthMM = A4_WIDTH_MM - 2 * marginMM;
+      const usableHeightMM = A4_HEIGHT_MM - 2 * marginMM;
+      
+      const cardsPerRow = Math.floor((usableWidthMM + gapMM) / (cardWidthMM + gapMM));
+      const cardsPerCol = Math.floor((usableHeightMM + gapMM) / (cardHeightMM + gapMM));
+      const cardsPerPage = cardsPerRow * cardsPerCol;
+      
+      document.getElementById('cards-per-page').textContent = cardsPerPage;
+      
+      // Render mini cards
+      preview.innerHTML = '';
+      
+      const scale = PREVIEW_SCALE;
+      const cardW = cardWidthMM * scale * MM_TO_PX;
+      const cardH = cardHeightMM * scale * MM_TO_PX;
+      const margin = marginMM * scale * MM_TO_PX;
+      const gap = gapMM * scale * MM_TO_PX;
+      
+      for (let row = 0; row < cardsPerCol; row++) {
+        for (let col = 0; col < cardsPerRow; col++) {
+          const miniCard = document.createElement('div');
+          miniCard.className = 'mini-card';
+          miniCard.style.width = cardW + 'px';
+          miniCard.style.height = cardH + 'px';
+          miniCard.style.left = (margin + col * (cardW + gap)) + 'px';
+          miniCard.style.top = (margin + row * (cardH + gap)) + 'px';
+          miniCard.style.backgroundColor = state.frontBgTransparent ? '#fff' : state.frontBgColor;
+          
+          // Add mini fields
+          state.fields.filter(f => f.side === 'front').forEach(field => {
+            const miniField = document.createElement('div');
+            miniField.className = 'mini-field';
+            miniField.style.left = (field.x / state.cardWidth * cardW) + 'px';
+            miniField.style.top = (field.y / state.cardHeight * cardH) + 'px';
+            miniField.style.width = (field.width / state.cardWidth * cardW) + 'px';
+            miniField.style.color = field.color;
+            miniField.style.backgroundColor = field.bgTransparent ? 'transparent' : field.bgColor;
+            miniField.textContent = field.name;
+            miniCard.appendChild(miniField);
+          });
+          
+          preview.appendChild(miniCard);
+        }
+      }
+    }
+    
+    // Print functionality (manual mode)
+    function printCards(side) {
+      if (state.data.length === 0) {
+        alert('Нет данных для печати!');
+        return;
+      }
+      
+      const printArea = document.getElementById('print-area');
+      printArea.innerHTML = '';
+      
+      // Calculate layout
+      const cardWidthMM = state.cardWidth / MM_TO_PX;
+      const cardHeightMM = state.cardHeight / MM_TO_PX;
+      
+      const marginMM = 10;
+      const gapMM = 5;
+      
+      const usableWidthMM = A4_WIDTH_MM - 2 * marginMM;
+      const usableHeightMM = A4_HEIGHT_MM - 2 * marginMM;
+      
+      const cardsPerRow = Math.floor((usableWidthMM + gapMM) / (cardWidthMM + gapMM));
+      const cardsPerCol = Math.floor((usableHeightMM + gapMM) / (cardHeightMM + gapMM));
+      const cardsPerPage = cardsPerRow * cardsPerCol;
+      
+      // Generate pages
+      const totalPages = Math.ceil(state.data.length / cardsPerPage);
+      
+      for (let pageNum = 0; pageNum < totalPages; pageNum++) {
+        const page = createPrintPage(side, pageNum, cardsPerPage, cardsPerRow, cardsPerCol, cardWidthMM, cardHeightMM, marginMM, gapMM);
+        printArea.appendChild(page);
+      }
+      
+      window.print();
+    }
+    
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+    
+    // Print Modal
+    let selectedPrintMode = 'duplex';
+    
+    function openPrintModal() {
+      if (state.data.length === 0) {
+        alert('Нет данных для печати!');
+        return;
+      }
+      document.getElementById('print-modal').classList.add('active');
+      selectPrintMode('duplex');
+    }
+    
+    function closePrintModal() {
+      document.getElementById('print-modal').classList.remove('active');
+    }
+    
+    function selectPrintMode(mode) {
+      selectedPrintMode = mode;
+      document.querySelectorAll('.print-option').forEach(el => el.classList.remove('selected'));
+      document.getElementById('print-mode-' + mode).classList.add('selected');
+    }
+    
+    function executePrint() {
+      closePrintModal();
+      
+      if (selectedPrintMode === 'duplex') {
+        printCardsDuplex();
+      } else if (selectedPrintMode === 'manual-front') {
+        printCards('front');
+      } else if (selectedPrintMode === 'manual-back') {
+        printCards('back');
+      }
+    }
+    
+    // Duplex printing - front and back on alternating pages
+    function printCardsDuplex() {
+      const printArea = document.getElementById('print-area');
+      printArea.innerHTML = '';
+      
+      // Calculate layout
+      const cardWidthMM = state.cardWidth / MM_TO_PX;
+      const cardHeightMM = state.cardHeight / MM_TO_PX;
+      
+      const marginMM = 10;
+      const gapMM = 5;
+      
+      const usableWidthMM = A4_WIDTH_MM - 2 * marginMM;
+      const usableHeightMM = A4_HEIGHT_MM - 2 * marginMM;
+      
+      const cardsPerRow = Math.floor((usableWidthMM + gapMM) / (cardWidthMM + gapMM));
+      const cardsPerCol = Math.floor((usableHeightMM + gapMM) / (cardHeightMM + gapMM));
+      const cardsPerPage = cardsPerRow * cardsPerCol;
+      
+      // Generate pages - alternating front/back
+      const totalSheets = Math.ceil(state.data.length / cardsPerPage);
+      
+      for (let sheetNum = 0; sheetNum < totalSheets; sheetNum++) {
+        // Front page
+        const frontPage = createPrintPage('front', sheetNum, cardsPerPage, cardsPerRow, cardsPerCol, cardWidthMM, cardHeightMM, marginMM, gapMM);
+        printArea.appendChild(frontPage);
+        
+        // Back page (mirrored)
+        const backPage = createPrintPage('back', sheetNum, cardsPerPage, cardsPerRow, cardsPerCol, cardWidthMM, cardHeightMM, marginMM, gapMM);
+        printArea.appendChild(backPage);
+      }
+      
+      window.print();
+    }
+    
+    function createPrintPage(side, sheetNum, cardsPerPage, cardsPerRow, cardsPerCol, cardWidthMM, cardHeightMM, marginMM, gapMM) {
+      const page = document.createElement('div');
+      page.className = 'print-page';
+      page.style.cssText = '-webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; color-adjust: exact !important;';
+      
+      const startIndex = sheetNum * cardsPerPage;
+      const endIndex = Math.min(startIndex + cardsPerPage, state.data.length);
+      
+      for (let i = startIndex; i < endIndex; i++) {
+        const cardIndex = i - startIndex;
+        const row = Math.floor(cardIndex / cardsPerRow);
+        const col = cardIndex % cardsPerRow;
+        
+        const card = document.createElement('div');
+        card.className = 'print-card';
+        card.style.width = cardWidthMM + 'mm';
+        card.style.height = cardHeightMM + 'mm';
+        
+        // Calculate front position
+        const leftPosFront = marginMM + col * (cardWidthMM + gapMM);
+        
+        let leftPos;
+        if (side === 'back') {
+          // Mirror relative to page center for exact alignment when paper is flipped
+          leftPos = A4_WIDTH_MM - leftPosFront - cardWidthMM;
+        } else {
+          leftPos = leftPosFront;
+        }
+        
+        card.style.left = leftPos + 'mm';
+        card.style.top = (marginMM + row * (cardHeightMM + gapMM)) + 'mm';
+        card.style.border = '1px solid #ccc';
+        card.style.webkitPrintColorAdjust = 'exact';
+        card.style.printColorAdjust = 'exact';
+        card.style.colorAdjust = 'exact';
+        
+        if (side === 'front') {
+          if (!state.frontBgTransparent) {
+            card.style.backgroundColor = state.frontBgColor;
+          } else {
+            card.style.backgroundColor = 'white';
+          }
+        } else {
+          if (!state.backBgTransparent) {
+            card.style.backgroundColor = state.backBgColor;
+          } else {
+            card.style.backgroundColor = 'white';
+          }
+        }
+        
+        // Add fields
+        const sideFields = state.fields.filter(f => f.side === side);
+        const rowData = state.data[i];
+        
+        sideFields.forEach(field => {
+          const fieldEl = document.createElement('div');
+          fieldEl.className = 'print-field';
+          
+          // Field position within card (no mirroring needed - card itself is mirrored)
+          const fieldLeft = field.x;
+          
+          fieldEl.style.left = (fieldLeft / state.cardWidth * cardWidthMM) + 'mm';
+          fieldEl.style.top = (field.y / state.cardHeight * cardHeightMM) + 'mm';
+          fieldEl.style.width = (field.width / state.cardWidth * cardWidthMM) + 'mm';
+          fieldEl.style.height = (field.height / state.cardHeight * cardHeightMM) + 'mm';
+          fieldEl.style.fontFamily = field.fontFamily;
+          fieldEl.style.fontSize = (field.fontSize * 0.75) + 'pt';
+          fieldEl.style.fontWeight = field.bold ? 'bold' : 'normal';
+          fieldEl.style.fontStyle = field.italic ? 'italic' : 'normal';
+          fieldEl.style.color = field.color;
+          fieldEl.style.webkitPrintColorAdjust = 'exact';
+          fieldEl.style.printColorAdjust = 'exact';
+          fieldEl.style.colorAdjust = 'exact';
+          
+          if (!field.bgTransparent) {
+            fieldEl.style.backgroundColor = field.bgColor;
+          }
+          
+          fieldEl.style.display = 'flex';
+          fieldEl.style.alignItems = 'center';
+          fieldEl.style.justifyContent = 'center';
+          fieldEl.style.overflow = 'hidden';
+          fieldEl.textContent = rowData[field.name] || '';
+          
+          card.appendChild(fieldEl);
+        });
+        
+        page.appendChild(card);
+      }
+      
+      return page;
+    }
+    
+    // Save/Load Settings
+    function openSaveModal() {
+      document.getElementById('save-modal').classList.add('active');
+      document.getElementById('save-name').value = '';
+      document.getElementById('save-name').focus();
+    }
+    
+    function closeSaveModal() {
+      document.getElementById('save-modal').classList.remove('active');
+    }
+    
+    function saveSettings() {
+      const name = document.getElementById('save-name').value.trim();
+      if (!name) {
+        alert('Введите название шаблона!');
+        return;
+      }
+      
+      const settings = {
+        name: name,
+        date: new Date().toISOString(),
+        cardWidth: state.cardWidth,
+        cardHeight: state.cardHeight,
+        frontBgColor: state.frontBgColor,
+        frontBgTransparent: state.frontBgTransparent,
+        backBgColor: state.backBgColor,
+        backBgTransparent: state.backBgTransparent,
+        fields: state.fields,
+        data: state.data,
+        nextFieldId: state.nextFieldId
+      };
+      
+      // Load existing settings from localStorage
+      let savedSettings = JSON.parse(localStorage.getItem('flashcard-settings') || '[]');
+      
+      // Check for duplicate name
+      const existingIndex = savedSettings.findIndex(s => s.name === name);
+      if (existingIndex !== -1) {
+        if (confirm('Шаблон с таким именем уже существует. Перезаписать?')) {
+          savedSettings[existingIndex] = settings;
+        } else {
+          return;
+        }
+      } else {
+        savedSettings.push(settings);
+      }
+      
+      localStorage.setItem('flashcard-settings', JSON.stringify(savedSettings));
+      alert('Шаблон сохранён!');
+      closeSaveModal();
+    }
+    
+    function exportSettingsFile() {
+      const name = document.getElementById('save-name').value.trim() || 'flashcard-template';
+      exportSettingsWithName(name);
+      closeSaveModal();
+    }
+    
+    function exportSettingsFileDirect() {
+      const name = prompt('Введите название файла:', 'flashcard-template');
+      if (!name) return;
+      exportSettingsWithName(name);
+    }
+    
+    function exportSettingsWithName(name) {
+      const settings = {
+        name: name,
+        date: new Date().toISOString(),
+        cardWidth: state.cardWidth,
+        cardHeight: state.cardHeight,
+        frontBgColor: state.frontBgColor,
+        frontBgTransparent: state.frontBgTransparent,
+        backBgColor: state.backBgColor,
+        backBgTransparent: state.backBgTransparent,
+        fields: state.fields,
+        data: state.data,
+        nextFieldId: state.nextFieldId
+      };
+      
+      const blob = new Blob([JSON.stringify(settings, null, 2)], { type: 'application/json' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = name.replace(/[^a-zA-Zа-яА-Я0-9]/g, '_') + '.json';
+      link.click();
+    }
+    
+    let selectedSettingsIndex = -1;
+    
+    function openLoadModal() {
+      document.getElementById('load-modal').classList.add('active');
+      selectedSettingsIndex = -1;
+      document.getElementById('load-btn').disabled = true;
+      renderSettingsList();
+    }
+    
+    function closeLoadModal() {
+      document.getElementById('load-modal').classList.remove('active');
+    }
+    
+    function renderSettingsList() {
+      const list = document.getElementById('settings-list');
+      const savedSettings = JSON.parse(localStorage.getItem('flashcard-settings') || '[]');
+      
+      if (savedSettings.length === 0) {
+        list.innerHTML = '<div class="empty-settings">Нет сохранённых шаблонов</div>';
+        return;
+      }
+      
+      list.innerHTML = savedSettings.map((s, index) => {
+        const date = new Date(s.date).toLocaleString('ru-RU');
+        return `
+          <div class="settings-item" onclick="selectSettings(${index})" data-index="${index}">
+            <div class="settings-item-info">
+              <div class="settings-item-name">${escapeHtml(s.name)}</div>
+              <div class="settings-item-date">${date} • ${s.fields?.length || 0} полей • ${s.data?.length || 0} карточек</div>
+            </div>
+            <div class="settings-item-actions">
+              <button onclick="deleteSettings(${index}, event)" title="Удалить">×</button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+    
+    function selectSettings(index) {
+      selectedSettingsIndex = index;
+      document.querySelectorAll('.settings-item').forEach(el => el.classList.remove('selected'));
+      document.querySelector(`.settings-item[data-index="${index}"]`)?.classList.add('selected');
+      document.getElementById('load-btn').disabled = false;
+    }
+    
+    function deleteSettings(index, event) {
+      event.stopPropagation();
+      if (!confirm('Удалить этот шаблон?')) return;
+      
+      let savedSettings = JSON.parse(localStorage.getItem('flashcard-settings') || '[]');
+      savedSettings.splice(index, 1);
+      localStorage.setItem('flashcard-settings', JSON.stringify(savedSettings));
+      
+      selectedSettingsIndex = -1;
+      document.getElementById('load-btn').disabled = true;
+      renderSettingsList();
+    }
+    
+    function loadSelectedSettings() {
+      if (selectedSettingsIndex === -1) return;
+      
+      const savedSettings = JSON.parse(localStorage.getItem('flashcard-settings') || '[]');
+      const settings = savedSettings[selectedSettingsIndex];
+      
+      if (settings) {
+        applySettings(settings);
+        closeLoadModal();
+      }
+    }
+    
+    function importSettingsFile(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const settings = JSON.parse(e.target.result);
+          applySettings(settings);
+          closeLoadModal();
+          alert('Шаблон загружен!');
+        } catch (err) {
+          alert('Ошибка при чтении файла: ' + err.message);
+        }
+      };
+      reader.readAsText(file);
+      event.target.value = '';
+    }
+    
+    function applySettings(settings) {
+      // Clear existing fields from DOM
+      state.fields.forEach(field => {
+        const el = document.getElementById(field.id);
+        if (el) el.remove();
+      });
+      
+      // Apply settings
+      state.cardWidth = settings.cardWidth || 300;
+      state.cardHeight = settings.cardHeight || 200;
+      state.frontBgColor = settings.frontBgColor || '#ffffff';
+      state.frontBgTransparent = settings.frontBgTransparent !== false;
+      state.backBgColor = settings.backBgColor || '#ffffff';
+      state.backBgTransparent = settings.backBgTransparent !== false;
+      state.fields = settings.fields || [];
+      state.data = settings.data || [];
+      state.nextFieldId = settings.nextFieldId || 1;
+      
+      // Update UI
+      document.getElementById('card-width').value = state.cardWidth;
+      document.getElementById('card-height').value = state.cardHeight;
+      document.getElementById('front-bg-color').value = state.frontBgColor;
+      document.getElementById('front-bg-transparent').checked = state.frontBgTransparent;
+      document.getElementById('back-bg-color').value = state.backBgColor;
+      document.getElementById('back-bg-transparent').checked = state.backBgTransparent;
+      
+      updateCardSizes();
+      
+      // Re-render fields
+      state.fields.forEach(field => renderField(field));
+      
+      updateTable();
+      updateA4Preview();
+    }
+  </script>
+</body>
+</html>
