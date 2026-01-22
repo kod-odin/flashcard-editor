@@ -318,9 +318,11 @@
     }
     
     .field-label {
-      white-space: nowrap;
+      white-space: pre-wrap;
+      word-wrap: break-word;
       overflow: hidden;
-      text-overflow: ellipsis;
+      text-align: inherit;
+      width: 100%;
     }
     
     /* Resize handles */
@@ -483,17 +485,21 @@
     .data-table td {
       padding: 8px 10px;
       border: 1px solid #ddd;
+      vertical-align: top;
     }
-    
-    .data-table td input {
+
+    .data-table td textarea {
       width: 100%;
+      min-height: 60px;
       padding: 6px 8px;
       border: 1px solid #ddd;
       border-radius: 4px;
       font-size: 13px;
+      font-family: inherit;
+      resize: vertical;
     }
-    
-    .data-table td input:focus {
+
+    .data-table td textarea:focus {
       outline: none;
       border-color: #3498db;
     }
@@ -592,7 +598,8 @@
       
       .print-field {
         position: absolute;
-        white-space: nowrap;
+        white-space: pre-wrap;
+        word-wrap: break-word;
         -webkit-print-color-adjust: exact !important;
         print-color-adjust: exact !important;
         color-adjust: exact !important;
@@ -1228,6 +1235,7 @@
       el.style.backgroundColor = field.bgTransparent ? 'transparent' : field.bgColor;
       const alignMap = { left: 'flex-start', center: 'center', right: 'flex-end' };
       el.style.justifyContent = alignMap[field.textAlign] || 'center';
+      el.style.textAlign = field.textAlign || 'center';
       el.style.direction = field.textDirection || 'ltr';
     }
     
@@ -1379,6 +1387,7 @@
         updateFieldElement(fieldEl, field);
       }
 
+      updateTable();
       updateA4Preview();
     }
 
@@ -1397,6 +1406,7 @@
         updateFieldElement(fieldEl, field);
       }
 
+      updateTable();
       updateA4Preview();
     }
 
@@ -1551,7 +1561,8 @@
         columns.forEach(col => {
           const field = state.fields.find(f => f.name === col);
           const dir = field && field.textDirection === 'rtl' ? 'rtl' : 'ltr';
-          bodyHtml += `<td><input type="text" dir="${dir}" value="${escapeHtml(row[col] || '')}" onchange="updateCell(${rowIndex}, '${escapeHtml(col)}', this.value)"></td>`;
+          const align = field && field.textAlign ? field.textAlign : 'center';
+          bodyHtml += `<td><textarea dir="${dir}" style="text-align:${align}" oninput="updateCell(${rowIndex}, '${escapeHtml(col)}', this.value)">${escapeHtml(row[col] || '')}</textarea></td>`;
         });
         bodyHtml += `<td class="row-actions"><button onclick="deleteRow(${rowIndex})" title="Удалить строку">×</button></td>`;
         bodyHtml += '</tr>';
@@ -1974,8 +1985,11 @@
           fieldEl.style.alignItems = 'center';
           const alignMap = { left: 'flex-start', center: 'center', right: 'flex-end' };
           fieldEl.style.justifyContent = alignMap[field.textAlign] || 'center';
+          fieldEl.style.textAlign = field.textAlign || 'center';
           fieldEl.style.direction = field.textDirection || 'ltr';
           fieldEl.style.overflow = 'hidden';
+          fieldEl.style.whiteSpace = 'pre-wrap';
+          fieldEl.style.wordWrap = 'break-word';
           fieldEl.textContent = rowData[field.name] || '';
           
           card.appendChild(fieldEl);
