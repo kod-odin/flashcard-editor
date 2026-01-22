@@ -4,6 +4,12 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Редактор флеш-карточек</title>
+  <link rel="apple-touch-icon" sizes="180x180" href="favicon/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="favicon/favicon-16x16.png">
+  <link rel="icon" type="image/x-icon" href="favicon/favicon.ico">
+  <link rel="manifest" href="favicon/site.webmanifest">
+  <meta name="theme-color" content="#3498db">
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&family=Open+Sans:wght@400;700&family=Montserrat:wght@400;700&family=Lora:wght@400;700&family=PT+Sans:wght@400;700&family=Noto+Serif:wght@400;700&family=Noto+Sans:wght@400;700&family=Noto+Naskh+Arabic:wght@400;700&family=Noto+Nastaliq+Urdu:wght@400;700&display=swap" rel="stylesheet">
   <style>
     * {
@@ -127,7 +133,42 @@
       color: white;
       border-color: #3498db;
     }
-    
+
+    .toolbar button .align-icon {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      width: 14px;
+    }
+
+    .toolbar button .align-icon span {
+      height: 2px;
+      background: currentColor;
+      border-radius: 1px;
+    }
+
+    .toolbar button .align-icon.left span:nth-child(1) { width: 100%; }
+    .toolbar button .align-icon.left span:nth-child(2) { width: 70%; }
+    .toolbar button .align-icon.left span:nth-child(3) { width: 85%; }
+
+    .toolbar button .align-icon.center span:nth-child(1) { width: 100%; margin: 0 auto; }
+    .toolbar button .align-icon.center span:nth-child(2) { width: 70%; margin: 0 auto; }
+    .toolbar button .align-icon.center span:nth-child(3) { width: 85%; margin: 0 auto; }
+
+    .toolbar button .align-icon.right span:nth-child(1) { width: 100%; margin-left: auto; }
+    .toolbar button .align-icon.right span:nth-child(2) { width: 70%; margin-left: auto; }
+    .toolbar button .align-icon.right span:nth-child(3) { width: 85%; margin-left: auto; }
+
+    .toolbar button .dir-icon {
+      font-size: 12px;
+      font-weight: bold;
+      letter-spacing: -1px;
+    }
+
+    .toolbar button .dir-icon.rtl {
+      font-family: 'Noto Naskh Arabic', serif;
+    }
+
     .toolbar select {
       padding: 6px 10px;
       border: 1px solid #ddd;
@@ -801,9 +842,30 @@
       <button id="btn-italic" onclick="toggleItalic()" title="Курсив">
         <em>I</em>
       </button>
-      
+
       <div class="toolbar-divider"></div>
-      
+
+      <button id="btn-align-left" onclick="setAlignment('left')" title="По левому краю">
+        <div class="align-icon left"><span></span><span></span><span></span></div>
+      </button>
+      <button id="btn-align-center" onclick="setAlignment('center')" title="По центру">
+        <div class="align-icon center"><span></span><span></span><span></span></div>
+      </button>
+      <button id="btn-align-right" onclick="setAlignment('right')" title="По правому краю">
+        <div class="align-icon right"><span></span><span></span><span></span></div>
+      </button>
+
+      <div class="toolbar-divider"></div>
+
+      <button id="btn-dir-ltr" onclick="setDirection('ltr')" title="Слева направо (LTR)">
+        <div class="dir-icon ltr">A→</div>
+      </button>
+      <button id="btn-dir-rtl" onclick="setDirection('rtl')" title="Справа налево (RTL)">
+        <div class="dir-icon rtl">←ا</div>
+      </button>
+
+      <div class="toolbar-divider"></div>
+
       <span class="toolbar-label">Цвет текста:</span>
       <input type="color" id="text-color" value="#000000" onchange="updateSelectedFieldStyle()">
       
@@ -1094,6 +1156,8 @@
         fontSize: 16,
         bold: false,
         italic: false,
+        textAlign: 'center',
+        textDirection: 'ltr',
         color: '#000000',
         bgColor: '#ffffff',
         bgTransparent: true
@@ -1162,6 +1226,9 @@
       el.style.fontStyle = field.italic ? 'italic' : 'normal';
       el.style.color = field.color;
       el.style.backgroundColor = field.bgTransparent ? 'transparent' : field.bgColor;
+      const alignMap = { left: 'flex-start', center: 'center', right: 'flex-end' };
+      el.style.justifyContent = alignMap[field.textAlign] || 'center';
+      el.style.direction = field.textDirection || 'ltr';
     }
     
     function selectField(fieldId) {
@@ -1185,7 +1252,12 @@
           document.getElementById('field-height').value = field.height;
           document.getElementById('btn-bold').classList.toggle('active', field.bold);
           document.getElementById('btn-italic').classList.toggle('active', field.italic);
-          
+          document.getElementById('btn-align-left').classList.toggle('active', field.textAlign === 'left');
+          document.getElementById('btn-align-center').classList.toggle('active', field.textAlign === 'center' || !field.textAlign);
+          document.getElementById('btn-align-right').classList.toggle('active', field.textAlign === 'right');
+          document.getElementById('btn-dir-ltr').classList.toggle('active', field.textDirection === 'ltr' || !field.textDirection);
+          document.getElementById('btn-dir-rtl').classList.toggle('active', field.textDirection === 'rtl');
+
           selectCard(field.side);
         }
       }
@@ -1276,21 +1348,58 @@
     
     function toggleItalic() {
       if (!state.selectedField) return;
-      
+
       const field = state.fields.find(f => f.id === state.selectedField);
       if (!field) return;
-      
+
       field.italic = !field.italic;
       document.getElementById('btn-italic').classList.toggle('active', field.italic);
-      
+
       const fieldEl = document.getElementById(state.selectedField);
       if (fieldEl) {
         updateFieldElement(fieldEl, field);
       }
-      
+
       updateA4Preview();
     }
-    
+
+    function setAlignment(align) {
+      if (!state.selectedField) return;
+
+      const field = state.fields.find(f => f.id === state.selectedField);
+      if (!field) return;
+
+      field.textAlign = align;
+      document.getElementById('btn-align-left').classList.toggle('active', align === 'left');
+      document.getElementById('btn-align-center').classList.toggle('active', align === 'center');
+      document.getElementById('btn-align-right').classList.toggle('active', align === 'right');
+
+      const fieldEl = document.getElementById(state.selectedField);
+      if (fieldEl) {
+        updateFieldElement(fieldEl, field);
+      }
+
+      updateA4Preview();
+    }
+
+    function setDirection(dir) {
+      if (!state.selectedField) return;
+
+      const field = state.fields.find(f => f.id === state.selectedField);
+      if (!field) return;
+
+      field.textDirection = dir;
+      document.getElementById('btn-dir-ltr').classList.toggle('active', dir === 'ltr');
+      document.getElementById('btn-dir-rtl').classList.toggle('active', dir === 'rtl');
+
+      const fieldEl = document.getElementById(state.selectedField);
+      if (fieldEl) {
+        updateFieldElement(fieldEl, field);
+      }
+
+      updateA4Preview();
+    }
+
     // Drag functionality
     let dragState = null;
     
@@ -1440,7 +1549,9 @@
       state.data.forEach((row, rowIndex) => {
         bodyHtml += '<tr>';
         columns.forEach(col => {
-          bodyHtml += `<td><input type="text" value="${escapeHtml(row[col] || '')}" onchange="updateCell(${rowIndex}, '${escapeHtml(col)}', this.value)"></td>`;
+          const field = state.fields.find(f => f.name === col);
+          const dir = field && field.textDirection === 'rtl' ? 'rtl' : 'ltr';
+          bodyHtml += `<td><input type="text" dir="${dir}" value="${escapeHtml(row[col] || '')}" onchange="updateCell(${rowIndex}, '${escapeHtml(col)}', this.value)"></td>`;
         });
         bodyHtml += `<td class="row-actions"><button onclick="deleteRow(${rowIndex})" title="Удалить строку">×</button></td>`;
         bodyHtml += '</tr>';
@@ -1524,6 +1635,8 @@
               fontSize: 16,
               bold: false,
               italic: false,
+              textAlign: 'center',
+              textDirection: 'ltr',
               color: '#000000',
               bgColor: '#ffffff',
               bgTransparent: true
@@ -1859,7 +1972,9 @@
           
           fieldEl.style.display = 'flex';
           fieldEl.style.alignItems = 'center';
-          fieldEl.style.justifyContent = 'center';
+          const alignMap = { left: 'flex-start', center: 'center', right: 'flex-end' };
+          fieldEl.style.justifyContent = alignMap[field.textAlign] || 'center';
+          fieldEl.style.direction = field.textDirection || 'ltr';
           fieldEl.style.overflow = 'hidden';
           fieldEl.textContent = rowData[field.name] || '';
           
